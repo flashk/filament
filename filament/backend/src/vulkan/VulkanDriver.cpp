@@ -665,6 +665,9 @@ void VulkanDriver::cancelExternalImage(void* image) {
 void VulkanDriver::setExternalImage(Handle<HwTexture> th, void* image) {
 }
 
+void VulkanDriver::setSynchronizedImage(Handle<HwTexture> th, SynchronizedImage&& image) {
+}
+
 void VulkanDriver::setExternalStream(Handle<HwTexture> th, Handle<HwStream> sh) {
 }
 
