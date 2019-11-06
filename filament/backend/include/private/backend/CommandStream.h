@@ -87,7 +87,6 @@ protected:
     using Execute = Dispatcher::Execute;
 
     constexpr explicit CommandBase(Execute execute) noexcept : mExecute(execute) {}
-
 public:
     // alignment of all Commands in the CommandStream
     static constexpr size_t align(size_t v) {
@@ -119,6 +118,17 @@ constexpr void trampoline(M&& m, D&& d, T&& t, std::index_sequence<I...>) {
 template<typename M, typename D, typename T>
 constexpr void apply(M&& m, D&& d, T&& t) {
     trampoline(std::forward<M>(m), std::forward<D>(d), std::forward<T>(t),
+            std::make_index_sequence< std::tuple_size<std::remove_reference_t<T>>::value >{});
+}
+
+template<typename RETVAL, typename M, typename D, typename T, std::size_t... I>
+constexpr RETVAL trampoline_ret(M&& m, D&& d, T&& t, std::index_sequence<I...>) {
+    return (d.*m)(std::move(std::get<I>(std::forward<T>(t)))...);
+}
+
+template<typename RETVAL, typename M, typename D, typename T>
+constexpr RETVAL apply_ret(M&& m, D&& d, T&& t) {
+    return trampoline_ret<RETVAL>(std::forward<M>(m), std::forward<D>(d), std::forward<T>(t),
             std::make_index_sequence< std::tuple_size<std::remove_reference_t<T>>::value >{});
 }
 
@@ -227,7 +237,7 @@ public:
 #define DECL_DRIVER_API_SYNCHRONOUS(RetType, methodName, paramsDecl, params)                    \
     inline RetType methodName(paramsDecl) {                                                     \
         DEBUG_COMMAND(methodName, params);                                                      \
-        return mDriver->methodName(params);                                                     \
+        return apply_ret<RetType>(&filament::backend::Driver::methodName, *mDriver, std::forward_as_tuple(params));          \
     }
 
 #define DECL_DRIVER_API_RETURN(RetType, methodName, paramsDecl, params)                         \
