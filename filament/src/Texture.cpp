@@ -169,7 +169,6 @@ void FTexture::setExternalImage(FEngine& engine, void* image) noexcept {
 
 void FTexture::setSynchronizedImage(FEngine& engine, SynchronizedImage&& image) noexcept {
     if (mTarget == Sampler::SAMPLER_EXTERNAL) {
-        image.texture = this;
         engine.getDriverApi().setSynchronizedImage(mHandle, std::move(image));
     }
 }

@@ -37,6 +37,13 @@ class UTILS_PUBLIC Stream : public FilamentAPI {
     struct BuilderDetails;
 
 public:
+    /**
+     * Releases a low-level native image, guaranteed to be called on the main filament thread.
+     */
+    using Callback = void(*)(void* image, void* user);
+
+    using StreamType = backend::StreamType;
+
     //! Use Builder to construct an Stream object instance
     class Builder : public BuilderBase<BuilderDetails> {
         friend struct BuilderDetails;
@@ -49,8 +56,10 @@ public:
         Builder& operator=(Builder&& rhs) noexcept;
 
         /**
-         * Creates a native stream. Native streams can sample data directly from an
+         * Creates a NATIVE stream. Native streams can sample data directly from an
          * opaque platform object such as a SurfaceTexture on Android.
+         *
+         * \deprecated in favor of the low-level stream that takes a callback
          *
          * @param stream An opaque native stream handle. e.g.: on Android this is an
          *                     `android/graphics/SurfaceTexture` JNI jobject.
@@ -60,7 +69,17 @@ public:
         Builder& stream(void* stream) noexcept;
 
         /**
-         * Creates a copy stream. A copy stream will sample data from the supplied
+         * Creates an ACQUIRED stream. Acquired streams can sample data directly from an
+         * opaque platform object such as an EGLImage and require a callback for the release.
+         *
+         * @param stream An opaque native stream handle.
+         *
+         * @return This Builder, for chaining calls.
+         */
+        Builder& stream(void* stream, Callback callback, void* user) noexcept;
+
+        /**
+         * Creates a TEXID stream. A texid stream will sample data from the supplied
          * external texture and copy it into an internal private texture.
          *
          * @param externalTextureId An opaque texture id (typically a GLuint created with glGenTextures)
@@ -107,9 +126,9 @@ public:
     };
 
     /**
-     * Indicates whether this stream is a native stream or a copy stream.
+     * Indicates whether this stream is a native stream, texid stream, or acquired stream.
      */
-    bool isNativeStream() const noexcept;
+    StreamType getStreamType() const noexcept;
 
     /**
      * Updates the size of the incoming stream. Whether this value is used is

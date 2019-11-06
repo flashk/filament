@@ -27,6 +27,8 @@
 namespace filament {
 namespace backend {
 
+using StreamCallback = void(*)(void* image, void* user);
+
 class UTILS_PUBLIC SynchronizedImage {
 public:
     /**

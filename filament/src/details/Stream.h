@@ -42,9 +42,12 @@ public:
     void readPixels(uint32_t xoffset, uint32_t yoffset, uint32_t width, uint32_t height,
             backend::PixelBufferDescriptor&& buffer) noexcept;
 
-    bool isNativeStream() const noexcept { return mNativeStream != nullptr; }
-
-    bool isExternalTextureId() const noexcept { return !isNativeStream(); }
+    StreamType getStreamType() const noexcept {
+        if (mNativeStream == nullptr) {
+            return StreamType::TEXID;
+        }
+        return mReleaseCallback ? StreamType::ACQUIRED : StreamType::NATIVE;
+    }
 
     uint32_t getWidth() const noexcept { return mWidth; }
 
@@ -59,6 +62,8 @@ private:
     intptr_t mExternalTextureId;
     uint32_t mWidth;
     uint32_t mHeight;
+    Callback mReleaseCallback = nullptr;
+    void* mUserData = nullptr;
 };
 
 FILAMENT_UPCAST(Stream)

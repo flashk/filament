@@ -1182,10 +1182,10 @@ void OpenGLDriver::destroyStream(Handle<HwStream> sh) {
 // These are called on the application's thread
 // ------------------------------------------------------------------------------------------------
 
-Handle<HwStream> OpenGLDriver::createStream(void* nativeStream) {
+Handle<HwStream> OpenGLDriver::createStream(void* nativeStream, backend::StreamCallback cb, void* userData) {
     Handle<HwStream> sh( allocateHandle(sizeof(GLStream)) );
     Platform::Stream* stream = mPlatform.createStream(nativeStream);
-    construct<GLStream>(sh, stream);
+    construct<GLStream>(sh, stream, cb, userData);
     return sh;
 }
 
@@ -1208,6 +1208,7 @@ void OpenGLDriver::updateStreams(DriverApi* driver) {
             }
         }
     }
+#if 0
     for (auto& pair : mUserThreadSyncImages) {
         GLTexture* t = pair.first;
         backend::SynchronizedImage image = std::move(pair.second);
@@ -1239,9 +1240,9 @@ void OpenGLDriver::updateStreams(DriverApi* driver) {
 
         t->gl.syncImage = image.image;
         mSyncImages.push_back(std::move(image));
-#endif
     }
     mUserThreadSyncImages.clear();
+#endif
 }
 
 void OpenGLDriver::setStreamDimensions(Handle<HwStream> sh, uint32_t width, uint32_t height) {
@@ -1774,7 +1775,7 @@ void OpenGLDriver::setExternalImage(Handle<HwTexture> th, void* image) {
 }
 
 void OpenGLDriver::setSynchronizedImage(Handle<HwTexture> th, SynchronizedImage&& image) {
-    mUserThreadSyncImages.push_back(std::move(image));
+    // mUserThreadSyncImages.push_back(std::move(image));
 }
 
 void OpenGLDriver::setExternalStream(Handle<HwTexture> th, Handle<HwStream> sh) {

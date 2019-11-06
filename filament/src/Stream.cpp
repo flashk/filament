@@ -34,6 +34,8 @@ using namespace backend;
 
 struct Stream::BuilderDetails {
     void* mStream = nullptr;
+    Callback mReleaseCallback = nullptr;
+    void* mUserData = nullptr;
     intptr_t mExternalTextureId = 0;
     uint32_t mWidth = 0;
     uint32_t mHeight = 0;
@@ -50,6 +52,13 @@ BuilderType::Builder& BuilderType::Builder::operator=(BuilderType::Builder&& rhs
 
 Stream::Builder& Stream::Builder::stream(void* stream) noexcept {
     mImpl->mStream = stream;
+    return *this;
+}
+
+Stream::Builder& Stream::Builder::stream(void* stream, Callback callback, void* user) noexcept {
+    mImpl->mStream = stream;
+    mImpl->mReleaseCallback = callback;
+    mImpl->mUserData = user;
     return *this;
 }
 
@@ -87,11 +96,13 @@ FStream::FStream(FEngine& engine, const Builder& builder) noexcept
           mNativeStream(builder->mStream),
           mExternalTextureId(builder->mExternalTextureId),
           mWidth(builder->mWidth),
-          mHeight(builder->mHeight) {
+          mHeight(builder->mHeight),
+          mReleaseCallback(builder->mReleaseCallback),
+          mUserData(builder->mUserData) {
 
     if (mNativeStream) {
         // Note: this is a synchronous call. On Android, this calls back into Java.
-        mStreamHandle = engine.getDriverApi().createStream(mNativeStream);
+        mStreamHandle = engine.getDriverApi().createStream(mNativeStream, mReleaseCallback, mUserData);
     } else if (mExternalTextureId) {
         mStreamHandle = engine.getDriverApi().createStreamFromTextureId(
                 mExternalTextureId, mWidth, mHeight);

@@ -624,6 +624,13 @@ enum class BlendFunction : uint8_t {
     SRC_ALPHA_SATURATE      //!< f(src, dst) = (1,1,1) * min(src.a, 1 - dst.a), 1
 };
 
+//! Stream for external textures
+enum class StreamType {
+    NATIVE,
+    TEXID,
+    ACQUIRED,
+};
+
 //! Vertex attribute descriptor
 struct Attribute {
     //! attribute is normalized (remapped between 0 and 1)

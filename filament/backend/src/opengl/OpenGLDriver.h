@@ -125,7 +125,6 @@ public:
     struct GLStream : public backend::HwStream {
         static constexpr size_t ROUND_ROBIN_TEXTURE_COUNT = 3;      // 3 maximum
         using HwStream::HwStream;
-        bool isNativeStream() const { return gl.externalTextureId == 0; }
         struct Info {
             // storage for the read/write textures below
             backend::Platform::ExternalTexture* ets = nullptr;
@@ -367,8 +366,8 @@ private:
     mutable tsl::robin_map<uint32_t, GLuint> mSamplerMap;
     mutable std::vector<GLTexture*> mExternalStreams;
 
-    std::vector<std::pair<Handle<HwTexture>, backend::SynchronizedImage>> mUserThreadSyncImages;
-    mutable std::vector<backend::SynchronizedImage> mDriverThreadSyncImages;
+    // std::vector<std::pair<Handle<HwTexture>, backend::SynchronizedImage>> mUserThreadSyncImages;
+    // mutable std::vector<backend::SynchronizedImage> mDriverThreadSyncImages;
 
     void attachStream(GLTexture* t, GLStream* stream) noexcept;
     void detachStream(GLTexture* t) noexcept;

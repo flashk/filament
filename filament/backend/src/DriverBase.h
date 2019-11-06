@@ -133,10 +133,19 @@ struct HwSwapChain : public HwBase {
 
 struct HwStream : public HwBase {
     HwStream() = default;
-    explicit HwStream(Platform::Stream* stream) : stream(stream) { }
+    explicit HwStream(Platform::Stream* stream, backend::StreamCallback cb, void* userData) :
+            stream(stream), cb(cb), userData(userData) { }
+    StreamType getStreamType() const {
+        if (!stream) {
+            return StreamType::TEXID;
+        }
+        return cb ? StreamType::ACQUIRED : StreamType::NATIVE;
+    }
     Platform::Stream* stream = nullptr;
     uint32_t width = 0;
     uint32_t height = 0;
+    backend::StreamCallback cb = nullptr;
+    void* userData = nullptr;
 };
 
 /*

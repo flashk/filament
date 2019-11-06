@@ -545,7 +545,7 @@ void VulkanDriver::destroySwapChain(Handle<HwSwapChain> sch) {
 void VulkanDriver::destroyStream(Handle<HwStream> sh) {
 }
 
-Handle<HwStream> VulkanDriver::createStream(void* nativeStream) {
+Handle<HwStream> VulkanDriver::createStream(void* nativeStream, backend::StreamCallback cb, void* userData) {
     return {};
 }
 
