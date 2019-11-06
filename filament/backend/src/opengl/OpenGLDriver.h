@@ -366,7 +366,9 @@ private:
 
     mutable tsl::robin_map<uint32_t, GLuint> mSamplerMap;
     mutable std::vector<GLTexture*> mExternalStreams;
-    mutable std::vector<backend::SynchronizedImage> mSyncImages;
+
+    std::vector<std::pair<Handle<HwTexture>, backend::SynchronizedImage>> mUserThreadSyncImages;
+    mutable std::vector<backend::SynchronizedImage> mDriverThreadSyncImages;
 
     void attachStream(GLTexture* t, GLStream* stream) noexcept;
     void detachStream(GLTexture* t) noexcept;

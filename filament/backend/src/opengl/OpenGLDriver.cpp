@@ -1208,6 +1208,40 @@ void OpenGLDriver::updateStreams(DriverApi* driver) {
             }
         }
     }
+    for (auto& pair : mUserThreadSyncImages) {
+        GLTexture* t = pair.first;
+        backend::SynchronizedImage image = std::move(pair.second);
+
+        setExternalImage(th, image.image);
+
+        // Don't allow users to set the same EGLImage twice in a row since it is unclear when to
+        // call the callback in this situation.
+        if (t->gl.syncImage == image.image) {
+            PANIC_LOG("Do not set the same image twice.");
+        }
+
+        // If replacing an existing synchronized image, its release callback should be triggered when
+        // the GPU finishes all work up to this point.
+        void* existingImage = t->gl.syncImage;
+        if (existingImage) {
+            whenGpuCommandsComplete([this, existingImage]()  {
+                std::vector<SynchronizedImage> images;
+                std::swap(images, mSyncImages);
+                for (auto&& image : images) {
+                    if (image.image == existingImage) {
+                        scheduleRelease(std::move(image));
+                    } else {
+                        mSyncImages.push_back(std::move(image));
+                    }
+                }
+            });
+        }
+
+        t->gl.syncImage = image.image;
+        mSyncImages.push_back(std::move(image));
+#endif
+    }
+    mUserThreadSyncImages.clear();
 }
 
 void OpenGLDriver::setStreamDimensions(Handle<HwStream> sh, uint32_t width, uint32_t height) {
@@ -1740,35 +1774,7 @@ void OpenGLDriver::setExternalImage(Handle<HwTexture> th, void* image) {
 }
 
 void OpenGLDriver::setSynchronizedImage(Handle<HwTexture> th, SynchronizedImage&& image) {
-    GLTexture* t = handle_cast<GLTexture*>(th);
-
-    setExternalImage(th, image.image);
-
-    // Don't allow users to set the same EGLImage twice in a row since it is unclear when to
-    // call the callback in this situation.
-    if (t->gl.syncImage == image.image) {
-        PANIC_LOG("Do not set the same image twice.");
-    }
-
-    // If replacing an existing synchronized image, its release callback should be triggered when
-    // the GPU finishes all work up to this point.
-    void* existingImage = t->gl.syncImage;
-    if (existingImage) {
-        whenGpuCommandsComplete([this, existingImage]()  {
-            std::vector<SynchronizedImage> images;
-            std::swap(images, mSyncImages);
-            for (auto&& image : images) {
-                if (image.image == existingImage) {
-                    scheduleRelease(std::move(image));
-                } else {
-                    mSyncImages.push_back(std::move(image));
-                }
-            }
-        });
-    }
-
-    t->gl.syncImage = image.image;
-    mSyncImages.push_back(std::move(image));
+    mUserThreadSyncImages.push_back(std::move(image));
 }
 
 void OpenGLDriver::setExternalStream(Handle<HwTexture> th, Handle<HwStream> sh) {
