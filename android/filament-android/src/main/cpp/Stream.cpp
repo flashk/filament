@@ -108,10 +108,10 @@ Java_com_google_android_filament_Stream_nBuilderBuild(JNIEnv*, jclass,
     return (jlong) builder->builder()->build(*engine);
 }
 
-extern "C" JNIEXPORT jboolean JNICALL
-Java_com_google_android_filament_Stream_nIsNative(JNIEnv*, jclass, jlong nativeStream) {
+extern "C" JNIEXPORT jlong JNICALL
+Java_com_google_android_filament_Stream_nGetStreamType(JNIEnv*, jclass, jlong nativeStream) {
     Stream* stream = (Stream*) nativeStream;
-    return (jboolean) stream->isNativeStream();
+    return (jlong) stream->getStreamType();
 }
 
 extern "C" JNIEXPORT void JNICALL

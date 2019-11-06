@@ -53,6 +53,10 @@ void DriverBase::scheduleDestroySlow(BufferDescriptor&& buffer) noexcept {
     mBufferToPurge.push_back(std::move(buffer));
 }
 
+void DriverBase::scheduleRelease(const AcquiredImage& image) noexcept {
+    slog.e << "prideout not yet implemented" << io::endl;
+}
+
 // ------------------------------------------------------------------------------------------------
 
 Driver::~Driver() noexcept = default;
